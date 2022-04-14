@@ -1,0 +1,56 @@
+Use abnormal;
+
+
+
+CREATE TEMPORARY TABLE Store_Count_Condition
+SELECT Date
+	,Routing_ID
+    ,Local_Segment
+	,count(distinct Store_Code) AS StoreID_Count
+
+FROM data
+Group by Date, Routing_ID,Local_Segment
+Having count(distinct Store_Code) >= 40
+Order by Date Asc, Routing_ID Asc;
+
+Select *
+FROM data;
+
+Select *
+FROM Store_Count_Condition;
+
+CREATE TEMPORARY TABLE Left_Join_Find_StoreCode
+
+Select 
+	Store_Count_Condition.Date,
+    Store_Count_Condition.Routing_ID,
+	Store_Count_Condition.Local_Segment,
+    Store_Count_Condition.StoreID_Count,
+	data.Store_Code,
+	round(sum(data.Sales),2) AS Sales
+
+FROM Store_Count_Condition
+	LEFT JOIN data 
+    ON Store_Count_Condition.Date = data.Date
+    AND Store_Count_Condition.Routing_ID = data.Routing_ID
+    AND Store_Count_Condition.Local_Segment = data.Local_Segment
+    
+GROUP BY 1,2,3,4,5
+;
+
+SELECT * 
+FROM Left_Join_Find_StoreCode;
+
+SELECT 
+	Left_Join_Find_StoreCode.Date,
+    Left_Join_Find_StoreCode.Routing_ID,
+    Left_Join_Find_StoreCode.Local_Segment,
+    Left_Join_Find_StoreCode.StoreID_Count,
+    group_concat(Left_Join_Find_StoreCode.Store_Code) AS Store_Code_Concat,
+    round(avg(Left_Join_Find_StoreCode.Sales),2) AS AVG_Sales,
+	round(Sum(Left_Join_Find_StoreCode.Sales),2) AS Total_Sales
+	
+FROM Left_Join_Find_StoreCode
+GROUP BY 1,2,3,4
+;
+    
