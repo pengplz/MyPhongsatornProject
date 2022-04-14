@@ -1,0 +1,31 @@
+Use abnormal;
+
+
+CREATE TEMPORARY TABLE Split_Bill_Condition
+SELECT Date
+	,Distributor
+    ,EAN
+    ,FPC
+    ,Routing_ID
+    ,Sales
+    ,count(distinct Store_Code) AS Store_Code_Count
+
+FROM data
+GROUP BY Date,Distributor,EAN,FPC,Routing_ID,Sales
+Having count(distinct Store_Code) >= 10 AND Sales >0
+
+Order by Date Asc, Routing_ID Asc;
+
+-- CREATE TEMPORARY TABLE Left_Join_Find_StoreCode
+Select 
+	Split_Bill_Condition.*,
+    data.Local_Segment,
+	data.Store_Code
+    
+FROM Split_Bill_Condition
+	LEFT JOIN data 
+    ON Split_Bill_Condition.Date = data.Date
+	AND	Split_Bill_Condition.EAN = data.EAN
+    AND	Split_Bill_Condition.FPC = data.FPC
+    AND	Split_Bill_Condition.Sales = data.Sales
+    AND Split_Bill_Condition.Routing_ID = data.Routing_ID
